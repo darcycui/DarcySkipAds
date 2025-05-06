@@ -1,0 +1,88 @@
+package com.darcy.lib_access_skip.utils
+
+import android.accessibilityservice.AccessibilityService
+import android.view.accessibility.AccessibilityNodeInfo
+import com.darcy.lib_access_skip.exts.logV
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+object ViewUtil {
+
+    /**
+     * 打印 View 树
+     */
+    fun printViewTree(
+        node: AccessibilityNodeInfo?,
+        depth: Int = 0,
+        builder: StringBuilder = StringBuilder()
+    ) {
+        if (node == null) return
+
+        // 生成当前节点的缩进
+        val indent = "  ".repeat(depth)
+
+        // 收集节点信息
+        builder.append("$indent├─ ")
+            .append("Class: ${node.className}\n")
+            .append("$indent│  Text: ${node.text}\n")
+            .append("$indent│  ResId: ${node.viewIdResourceName}\n")
+            .append("$indent│  Clickable: ${node.isClickable}\n")
+            .append("$indent│  Visible: ${node.isVisibleToUser}\n")
+
+        // 递归处理子节点
+        for (i in 0 until node.childCount) {
+            val child = node.getChild(i)
+            printViewTree(child, depth + 1, builder)
+        }
+
+        // 如果是根节点，输出最终结果
+        if (depth == 0) {
+            logV("View Tree:\n$builder")
+        }
+    }
+
+    /**
+     * 根据文本 查找目标 View
+     */
+    fun findTargetView(
+        targetStr: String?,
+        service: AccessibilityService
+    ): List<AccessibilityNodeInfo?>? {
+        if (service.rootInActiveWindow == null || targetStr.isNullOrEmpty()) {
+            return null
+        }
+        return service.rootInActiveWindow.findAccessibilityNodeInfosByText(targetStr)
+    }
+
+    /**
+     * 点击目标 View
+     */
+    fun clickTargetView(
+        infos: List<AccessibilityNodeInfo?>?,
+        widgetList: List<String>?,
+        targetStrLengthLimit: Int,
+        service: AccessibilityService,
+    ) {
+        if (infos.isNullOrEmpty() || widgetList.isNullOrEmpty()) return
+        ScopeUtil.getMainScope().launch {
+            infos.filterNotNull()
+                .filter { BlackListUtil.isInBlackList(it.packageName).not() }
+                .filter { StringUtil.isTextValid(it.text, targetStrLengthLimit) }
+                .forEach { aInfo ->
+                    widgetList.forEach { widgetName ->
+                        // 点击按钮
+                        if (aInfo.className == widgetName && aInfo.isEnabled) {
+                            if (aInfo.isClickable) {
+                                delay(1_00)
+                                // 执行点击操作
+                                PerformActionUtil.performClickAction(aInfo, service)
+                            } else {
+                                // 执行手势点击
+                                GestureUtil.clickByCoordinates(aInfo, service)
+                            }
+                        }
+                    }
+                }
+        }
+    }
+}

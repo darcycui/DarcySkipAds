@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_service_label" translatable="false">Darcy自动跳过广告服务</string>
+    <string name="accessibility_service_description" translatable="false">Darcy无障碍服务：自动点击跳过按钮</string>
+</resources>

@@ -1,3 +1,8 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.io.FileInputStream
+import java.io.InputStreamReader
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -17,13 +22,40 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // load key store from local.properties
+    val localProperties = gradleLocalProperties(File(project.rootDir.absolutePath))
+    signingConfigs {
+        create("debugSign") {
+            storeFile = file(localProperties.getProperty("keystore_path"))
+            keyAlias = localProperties.getProperty("key_alias")
+            storePassword = localProperties.getProperty("store_password")
+            keyPassword = localProperties.getProperty("key_password")
+        }
+
+        create("releaseSign") {
+            storeFile = file(localProperties.getProperty("keystore_path"))
+            keyAlias = localProperties.getProperty("key_alias")
+            storePassword = localProperties.getProperty("store_password")
+            keyPassword = localProperties.getProperty("key_password")
+        }
+    }
+
     buildTypes {
-        release {
+        debug {
+            isDebuggable = true
             isMinifyEnabled = false
+            isShrinkResources = false
+            signingConfig = signingConfigs.getByName("debugSign")
+        }
+        release {
+            isMinifyEnabled = true
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("releaseSign")
         }
     }
     compileOptions {
@@ -39,6 +71,20 @@ android {
     }
 }
 
+fun gradleLocalProperties(projectRootDir: File): Properties {
+    val properties = Properties()
+    val localProperties = File(projectRootDir, "local.properties")
+
+    if (localProperties.isFile) {
+        InputStreamReader(FileInputStream(localProperties), Charsets.UTF_8).use { reader ->
+            properties.load(reader)
+        }
+    } else {
+        println("Gradle local properties file not found at $localProperties")
+    }
+    return properties
+}
+
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -52,5 +98,6 @@ dependencies {
 
     // 引入aar
 //    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
-    implementation(files("libs/lib_access_skip-release.aar"))
+//    implementation(files("libs/lib_access_skip-release.aar"))
+    implementation(project(":lib_access_skip"))
 }
