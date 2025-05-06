@@ -18,7 +18,11 @@ object GestureUtil {
     /**
      * 通过手势点击
      */
-    fun clickByCoordinates(aInfo: AccessibilityNodeInfo, service: AccessibilityService) {
+    fun clickByCoordinates(aInfo: AccessibilityNodeInfo?, service: AccessibilityService?) {
+        if (aInfo == null || service == null) {
+            logE("手势跳过:  aInfo == null || service == null")
+            return
+        }
         val rect = Rect()
         aInfo.getBoundsInScreen(rect)
         // 确保控件可见且坐标有效

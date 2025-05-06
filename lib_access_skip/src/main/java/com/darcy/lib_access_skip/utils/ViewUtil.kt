@@ -3,6 +3,8 @@ package com.darcy.lib_access_skip.utils
 import android.accessibilityservice.AccessibilityService
 import android.view.accessibility.AccessibilityNodeInfo
 import com.darcy.lib_access_skip.exts.logV
+import com.darcy.lib_access_skip.task.TaskManager
+import com.darcy.lib_access_skip.task.bean.SkipTask
 import com.darcy.lib_access_skip.task.cache.FIFOCache
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -47,8 +49,9 @@ object ViewUtil {
      */
     fun findTargetView(
         targetStr: String?,
-        service: AccessibilityService
+        service: AccessibilityService?
     ): List<AccessibilityNodeInfo?>? {
+        if (service == null) return null
         if (service.rootInActiveWindow == null || targetStr.isNullOrEmpty()) {
             return null
         }
@@ -64,12 +67,13 @@ object ViewUtil {
     /**
      * 点击目标 View
      */
-    fun clickTargetView(
+    fun filterAndClickTargetView(
         infos: List<AccessibilityNodeInfo?>?,
         widgetList: List<String>?,
         targetStrLengthLimit: Int,
-        service: AccessibilityService,
+        service: AccessibilityService?,
     ) {
+        if (service == null) return
         if (infos.isNullOrEmpty() || widgetList.isNullOrEmpty()) return
         ScopeUtil.getMainScope().launch {
             infos.filterNotNull()
@@ -95,6 +99,32 @@ object ViewUtil {
                             } else {
                                 logV("重复点击：$uniqueKey")
                             }
+                        }
+                    }
+                }
+        }
+    }
+
+    /**
+     * 过滤需要点击的 View
+     */
+    fun filterTargetView(
+        infos: List<AccessibilityNodeInfo?>?,
+        widgetList: List<String>?,
+        targetStrLengthLimit: Int,
+        service: AccessibilityService?,
+    ) {
+        if (service == null) return
+        if (infos.isNullOrEmpty() || widgetList.isNullOrEmpty()) return
+        ScopeUtil.getMainScope().launch {
+            infos.filterNotNull()
+                .filter { BlackListUtil.isInBlackList(it.packageName).not() }
+                .filter { StringUtil.isTextValid(it.text, targetStrLengthLimit) }
+                .forEach { aInfo ->
+                    widgetList.forEach { widgetName ->
+                        // 需要点击的按钮
+                        if (aInfo.className == widgetName && aInfo.isEnabled) {
+
                         }
                     }
                 }

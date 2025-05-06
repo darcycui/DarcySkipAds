@@ -7,6 +7,8 @@ import com.darcy.lib_access_skip.exts.logD
 import com.darcy.lib_access_skip.exts.logE
 import com.darcy.lib_access_skip.exts.logV
 import com.darcy.lib_access_skip.exts.logW
+import com.darcy.lib_access_skip.task.TaskManager
+import com.darcy.lib_access_skip.task.bean.SkipTask
 import com.darcy.lib_access_skip.utils.ViewUtil
 
 /**
@@ -43,7 +45,7 @@ class AutoSkipAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
-        logD("$TAG onAccessibilityEvent: event-->$event")
+//        logD("$TAG onAccessibilityEvent: event-->$event")
         runCatching {
             clearCacheIfNeeded(event)
             dealEvent(event)
@@ -56,9 +58,9 @@ class AutoSkipAccessibilityService : AccessibilityService() {
     private fun clearCacheIfNeeded(event: AccessibilityEvent?) {
         if (event == null) return
         val currentApp = event.packageName ?: ""
-        logV("$TAG onAccessibilityEvent: currentApp-->$currentApp")
+//        logV("$TAG onAccessibilityEvent: currentApp-->$currentApp")
         if (currentApp != lastApp) {
-            ViewUtil.clearClickedCache()
+            TaskManager.clearProducedCache()
         }
         lastApp = currentApp
     }
@@ -78,12 +80,14 @@ class AutoSkipAccessibilityService : AccessibilityService() {
 //                    }
 //                }
                 // 跳过广告
-                ViewUtil.clickTargetView(
-                    ViewUtil.findTargetView(STRING_SKIP, this),
-                    widgetList,
-                    STRING_LENGTH_MAX,
-                    this
-                )
+//                ViewUtil.filterAndClickTargetView(
+//                    ViewUtil.findTargetView(STRING_SKIP, this),
+//                    widgetList,
+//                    STRING_LENGTH_MAX,
+//                    this
+//                )
+                // 跳过广告 使用异步任务
+                TaskManager.addTask(this)
             }
 
             AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {}

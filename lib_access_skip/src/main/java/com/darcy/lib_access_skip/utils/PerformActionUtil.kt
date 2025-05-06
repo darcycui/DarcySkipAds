@@ -9,7 +9,11 @@ object PerformActionUtil {
     /**
      * 执行点击操作
      */
-    fun performClickAction(aInfo: AccessibilityNodeInfo, service: AccessibilityService) {
+    fun performClickAction(aInfo: AccessibilityNodeInfo?, service: AccessibilityService?) {
+        if (aInfo == null || service == null) {
+            logW("点击跳过:  aInfo == null || service == null")
+            return
+        }
         performActionInternal(aInfo, AccessibilityNodeInfo.ACTION_CLICK)
         logW("点击跳过:  ${aInfo.packageName} ${aInfo.text}")
         service.toasts("点击跳过")
