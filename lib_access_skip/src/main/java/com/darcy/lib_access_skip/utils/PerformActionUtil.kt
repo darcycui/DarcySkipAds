@@ -11,8 +11,8 @@ object PerformActionUtil {
      */
     fun performClickAction(aInfo: AccessibilityNodeInfo, service: AccessibilityService) {
         performActionInternal(aInfo, AccessibilityNodeInfo.ACTION_CLICK)
-        logW("点击了跳过按钮1:  ${aInfo.packageName} ${aInfo.text}")
-        service.toasts("点击了跳过按钮1")
+        logW("点击跳过:  ${aInfo.packageName} ${aInfo.text}")
+        service.toasts("点击跳过")
     }
 
     /**
@@ -30,6 +30,16 @@ object PerformActionUtil {
         service: AccessibilityService
     ) {
         performGlobalActionInternal(AccessibilityService.GLOBAL_ACTION_BACK, service)
+    }
+
+    /**
+     * 执行全局操作 Home
+     */
+    fun performGlobalHomeAction(
+        action: Int,
+        service: AccessibilityService
+    ) {
+        performGlobalActionInternal(AccessibilityService.GLOBAL_ACTION_HOME, service)
     }
 
     /**

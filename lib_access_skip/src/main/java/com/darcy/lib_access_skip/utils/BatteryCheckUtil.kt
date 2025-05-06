@@ -10,6 +10,7 @@ import android.provider.Settings
 import android.widget.TextView
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.ContextCompat.startActivity
+import androidx.core.net.toUri
 import com.darcy.lib_access_skip.exts.setTextViewColorGreen
 import com.darcy.lib_access_skip.exts.setTextViewColorRed
 import com.darcy.lib_access_skip.exts.toasts
@@ -36,7 +37,7 @@ object BatteryCheckUtil {
 
     fun requestIgnoreBatteryOptimizations(context: Context,) {
         val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-        intent.data = Uri.parse("package:${context.packageName}")
+        intent.data = "package:${context.packageName}".toUri()
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
     }

@@ -30,6 +30,8 @@ class AutoSkipAccessibilityService : AccessibilityService() {
         )
     }
 
+    private var lastApp: CharSequence = ""
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         logV("$TAG onServiceConnected")
@@ -40,123 +42,99 @@ class AutoSkipAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event == null) return
         logD("$TAG onAccessibilityEvent: event-->$event")
-        // 打印视图树
-        rootInActiveWindow?.let {
-            if (event?.packageName == "tv.danmaku.bili") {
-                ViewUtil.printViewTree(it)
-            } else if (event?.packageName == "com.sina.weibo") {
-                ViewUtil.printViewTree(it)
-            }
+        runCatching {
+            clearCacheIfNeeded(event)
+            dealEvent(event)
+        }.onFailure {
+            logE("$TAG onAccessibilityEvent: error-->$it")
+        }.onSuccess {
         }
-        dealEvent(event)
+    }
+
+    private fun clearCacheIfNeeded(event: AccessibilityEvent?) {
+        if (event == null) return
+        val currentApp = event.packageName ?: ""
+        logV("$TAG onAccessibilityEvent: currentApp-->$currentApp")
+        if (currentApp != lastApp) {
+            ViewUtil.clearClickedCache()
+        }
+        lastApp = currentApp
     }
 
     private fun dealEvent(event: AccessibilityEvent?) {
         if (event == null) return
         val eventType = event.eventType
         when (eventType) {
-            AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED -> {
-            }
-
-
-//            AccessibilityEvent.TYPE_WINDOWS_CHANGED,
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
             AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
-                ViewUtil.clickTargetView(ViewUtil.findTargetView(STRING_SKIP, this), widgetList, STRING_LENGTH_MAX, this)
+                // 打印视图树
+//                rootInActiveWindow?.let {
+//                    if (event.packageName == "tv.danmaku.bili") {
+//                        ViewUtil.printViewTree(it)
+//                    } else if (event.packageName == "com.sina.weibo") {
+//                        ViewUtil.printViewTree(it)
+//                    }
+//                }
+                // 跳过广告
+                ViewUtil.clickTargetView(
+                    ViewUtil.findTargetView(STRING_SKIP, this),
+                    widgetList,
+                    STRING_LENGTH_MAX,
+                    this
+                )
             }
 
-            AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED -> {
+            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {}
 
-            }
+            AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED -> {}
 
-            AccessibilityEvent.TYPE_GESTURE_DETECTION_START -> {
+            AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED -> {}
 
-            }
+            AccessibilityEvent.TYPE_GESTURE_DETECTION_START -> {}
 
-            AccessibilityEvent.TYPE_GESTURE_DETECTION_END -> {
+            AccessibilityEvent.TYPE_GESTURE_DETECTION_END -> {}
 
-            }
+            AccessibilityEvent.TYPE_VIEW_CLICKED -> {}
 
-            AccessibilityEvent.TYPE_VIEW_CLICKED -> {
+            AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED -> {}
 
-            }
+            AccessibilityEvent.TYPE_VIEW_SCROLLED -> {}
 
-            AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED -> {
+            AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED -> {}
 
-            }
+            AccessibilityEvent.TYPE_ANNOUNCEMENT -> {}
 
-            AccessibilityEvent.TYPE_VIEW_SCROLLED -> {
+            AccessibilityEvent.TYPE_ASSIST_READING_CONTEXT -> {}
 
-            }
+            AccessibilityEvent.TYPE_SPEECH_STATE_CHANGE -> {}
 
-            AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED -> {
+            AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_END -> {}
 
-            }
+            AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_START -> {}
 
-            AccessibilityEvent.TYPE_ANNOUNCEMENT -> {
+            AccessibilityEvent.TYPE_TOUCH_INTERACTION_END -> {}
 
-            }
+            AccessibilityEvent.TYPE_TOUCH_INTERACTION_START -> {}
 
-            AccessibilityEvent.TYPE_ASSIST_READING_CONTEXT -> {
+            AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED -> {}
 
-            }
+            AccessibilityEvent.TYPE_VIEW_CONTEXT_CLICKED -> {}
 
-            AccessibilityEvent.TYPE_SPEECH_STATE_CHANGE -> {
+            AccessibilityEvent.TYPE_VIEW_FOCUSED -> {}
 
-            }
+            AccessibilityEvent.TYPE_VIEW_HOVER_ENTER -> {}
 
-            AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_END -> {
+            AccessibilityEvent.TYPE_VIEW_HOVER_EXIT -> {}
 
-            }
+            AccessibilityEvent.TYPE_VIEW_LONG_CLICKED -> {}
 
-            AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_START -> {
+            AccessibilityEvent.TYPE_VIEW_SELECTED -> {}
 
-            }
+            AccessibilityEvent.TYPE_VIEW_TARGETED_BY_SCROLL -> {}
 
-            AccessibilityEvent.TYPE_TOUCH_INTERACTION_END -> {
-
-            }
-
-            AccessibilityEvent.TYPE_TOUCH_INTERACTION_START -> {
-
-            }
-
-            AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED -> {
-
-            }
-
-            AccessibilityEvent.TYPE_VIEW_CONTEXT_CLICKED -> {
-
-            }
-
-            AccessibilityEvent.TYPE_VIEW_FOCUSED -> {
-
-            }
-
-            AccessibilityEvent.TYPE_VIEW_HOVER_ENTER -> {
-
-            }
-
-            AccessibilityEvent.TYPE_VIEW_HOVER_EXIT -> {
-
-            }
-
-            AccessibilityEvent.TYPE_VIEW_LONG_CLICKED -> {
-
-            }
-
-            AccessibilityEvent.TYPE_VIEW_SELECTED -> {
-
-            }
-
-            AccessibilityEvent.TYPE_VIEW_TARGETED_BY_SCROLL -> {
-
-            }
-
-            AccessibilityEvent.TYPE_VIEW_TEXT_TRAVERSED_AT_MOVEMENT_GRANULARITY -> {
-
-            }
+            AccessibilityEvent.TYPE_VIEW_TEXT_TRAVERSED_AT_MOVEMENT_GRANULARITY -> {}
         }
     }
 

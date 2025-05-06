@@ -5,6 +5,7 @@ import android.accessibilityservice.GestureDescription
 import android.graphics.Path
 import android.graphics.Rect
 import android.view.accessibility.AccessibilityNodeInfo
+import com.darcy.lib_access_skip.exts.logD
 import com.darcy.lib_access_skip.exts.logE
 import com.darcy.lib_access_skip.exts.logW
 import com.darcy.lib_access_skip.exts.toasts
@@ -41,7 +42,7 @@ object GestureUtil {
         // 发送手势
         service.dispatchGesture(gesture, object : AccessibilityService.GestureResultCallback() {
             override fun onCompleted(gestureDescription: GestureDescription?) {
-                logW("手势完成: (${rect.centerX()}, ${rect.centerY()})")
+                logD("手势完成: (${rect.centerX()}, ${rect.centerY()})")
             }
 
             override fun onCancelled(gestureDescription: GestureDescription?) {
@@ -52,8 +53,7 @@ object GestureUtil {
         ScopeUtil.getMainScope().launch {
             delay(1_00)
         }
-        logW("点击坐标: (${rect.centerX()}, ${rect.centerY()})")
-        logE("点击了跳过按钮2:  ${aInfo.packageName} ${aInfo.text}")
-        service.toasts("点击了跳过按钮2")
+        logW("手势跳过: (${rect.centerX()}, ${rect.centerY()}) ${aInfo.packageName} ${aInfo.text}")
+        service.toasts("手势跳过")
     }
 }
