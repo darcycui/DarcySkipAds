@@ -49,3 +49,4 @@ dependencyResolutionManagement {
 rootProject.name = "DarcySkipAds"
 include(":app")
 include(":lib_access_skip")
+include(":lib_overlay")

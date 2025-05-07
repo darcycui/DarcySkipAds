@@ -8,14 +8,14 @@
     tools:context=".MainActivity">
 
     <LinearLayout
-        android:id="@+id/setting"
+        android:id="@+id/settingInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/tvInfo"
+            android:id="@+id/tvInfoAccessibility"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -44,37 +44,104 @@
             android:text="Hello World!"
             android:textSize="20sp" />
 
-        <Button
-            android:id="@+id/openAccessibility"
+        <TextView
+            android:id="@+id/tvInfoOverlay"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="无障碍服务-Click Skip" />
-
-        <Button
-            android:id="@+id/testAccessibility"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="测试无障碍服务" />
+            android:gravity="center"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:text="Hello World!"
+            android:textSize="20sp" />
     </LinearLayout>
+
+
+    <Button
+        android:id="@+id/openAccessibility"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:text="开启服务"
+        app:layout_constraintEnd_toStartOf="@+id/testAccessibility"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/settingInfo" />
+
+    <Button
+        android:id="@+id/testAccessibility"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:text="测试服务"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/openAccessibility"
+        app:layout_constraintTop_toTopOf="@+id/openAccessibility" />
 
     <Button
         android:id="@+id/btnNotification"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="5dp"
-        android:text="检查通知权限"
+        android:text="通知"
         app:layout_constraintEnd_toStartOf="@+id/btnBattery"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/setting" />
+        app:layout_constraintTop_toBottomOf="@+id/openAccessibility" />
 
     <Button
         android:id="@+id/btnBattery"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
-        android:text="检查电池优化"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="5dp"
+        android:text="电池优化"
+        app:layout_constraintEnd_toStartOf="@+id/btnOverlay"
         app:layout_constraintStart_toEndOf="@+id/btnNotification"
         app:layout_constraintTop_toTopOf="@+id/btnNotification" />
+
+
+    <Button
+        android:id="@+id/btnOverlay"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:text="悬浮窗"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnBattery"
+        app:layout_constraintTop_toTopOf="@+id/btnNotification" />
+
+    <TextView
+        android:id="@+id/tvSwitcher"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:background="@drawable/lib_overlay_circle_gray"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        android:text="已关闭"
+        android:gravity="center"
+        android:textColor="@color/black"
+        android:textSize="30sp"
+        app:layout_constraintTop_toBottomOf="@+id/btnOverlay" />
+
+    <SeekBar
+        android:id="@+id/seekbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="10dp"
+        android:max="100"
+        android:progress="50"
+        app:layout_constraintTop_toBottomOf="@id/tvSwitcher" />
+
+    <TextView
+        android:id="@+id/seekbarProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="@id/seekbar"
+        app:layout_constraintStart_toStartOf="@id/seekbar"
+        app:layout_constraintTop_toBottomOf="@+id/seekbar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

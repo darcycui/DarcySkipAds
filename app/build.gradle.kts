@@ -16,8 +16,8 @@ android {
         applicationId = "com.darcy.skipads"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -100,4 +100,5 @@ dependencies {
 //    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
 //    implementation(files("libs/lib_access_skip-release.aar"))
     implementation(project(":lib_access_skip"))
+    implementation(project(":lib_overlay"))
 }
