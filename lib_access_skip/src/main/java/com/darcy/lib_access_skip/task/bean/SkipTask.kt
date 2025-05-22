@@ -36,9 +36,4 @@ data class SkipTask(
     override fun hashCode(): Int {
         return getUniqueKey().hashCode()
     }
-
-    override fun toString(): String {
-        return "SkipTask(key=${getUniqueKey()})"
-    }
-
 }

@@ -3,10 +3,13 @@ package com.darcy.lib_access_skip.service.accessibility
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
 import android.view.accessibility.AccessibilityEvent
+import com.darcy.lib_access_skip.exts.logD
 import com.darcy.lib_access_skip.exts.logE
 import com.darcy.lib_access_skip.exts.logV
 import com.darcy.lib_access_skip.exts.logW
 import com.darcy.lib_access_skip.task.TaskManager
+import com.darcy.lib_access_skip.task.bean.SkipTask
+import com.darcy.lib_access_skip.utils.ViewUtil
 
 /**
  * 无障碍服务 Service
@@ -15,6 +18,8 @@ class AutoSkipAccessibilityService : AccessibilityService() {
 
     companion object {
         private val TAG = AutoSkipAccessibilityService::class.java.simpleName
+        private const val STRING_SKIP = "跳过"
+        private const val STRING_LENGTH_MAX = 10
         private const val WIDGET_TEXTVIEW = "android.widget.TextView"
         private const val WIDGET_APP_COMPAT_TEXTVIEW = "androidx.appcompat.widget.AppCompatTextView"
         private const val WIDGET_BUTTON = "android.widget.Button"
@@ -53,10 +58,10 @@ class AutoSkipAccessibilityService : AccessibilityService() {
     private fun clearCacheIfNeeded(event: AccessibilityEvent?) {
         if (event == null) return
         val currentApp = event.packageName ?: ""
-//        logV("$TAG onAccessibilityEvent: currentApp=$currentApp lastApp=$lastApp")
-//        if (currentApp != lastApp) {
-//            TaskManager.clearTaskCache()
-//        }
+//        logV("$TAG onAccessibilityEvent: currentApp-->$currentApp")
+        if (currentApp != lastApp) {
+            TaskManager.clearProducedCache()
+        }
         lastApp = currentApp
     }
 
