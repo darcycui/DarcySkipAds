@@ -9,7 +9,7 @@ object AccessDialogs {
     fun showPermissionDialog(activity: Activity) {
         AlertDialog.Builder(activity)
             .setTitle("提示")
-            .setMessage("请开启无障碍服务以便使用更多功能")
+            .setMessage("请开启无障碍服务以便使用跳过广告功能")
             .setPositiveButton("去设置") { _, _ ->
                 val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                 activity.startActivity(intent)
