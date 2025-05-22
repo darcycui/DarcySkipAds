@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentLinkedDeque
  * [capacity] 缓存容量
  */
 class FIFOCache<T>(private val capacity: Int) {
-    // 缓存队列 线程安全ConcurrentLinkedDeque (线程不安全可以使用 ArrayDeque)
+    // 缓存队列 线程安全 ConcurrentLinkedDeque (线程不安全可以使用 ArrayDeque)
     private val deque = ConcurrentLinkedDeque<T>()
 
     fun add(item: T) {
