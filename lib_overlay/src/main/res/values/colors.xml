@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="lib_overlay_black_100">#FF000000</color>
+    <color name="lib_overlay_black_98">#FA000000</color>
     <color name="lib_overlay_black_95">#F2000000</color>
     <color name="lib_overlay_black_90">#E6000000</color>
     <color name="lib_overlay_black_80">#CC000000</color>

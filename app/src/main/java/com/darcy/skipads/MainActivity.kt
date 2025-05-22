@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.provider.Settings
-import android.provider.Settings.canDrawOverlays
 import android.widget.SeekBar
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -20,7 +19,7 @@ import com.darcy.lib_access_skip.permission.NotificationPermissionUtil
 import com.darcy.lib_access_skip.ui.TestSkipActivity
 import com.darcy.lib_access_skip.utils.AccessCheckUtil
 import com.darcy.lib_access_skip.utils.BatteryCheckUtil
-import com.darcy.lib_overlay.OverlayViewManager
+import com.darcy.lib_overlay.notification.OverlayNotificationUtil
 import com.darcy.lib_overlay.service.OverlayService
 import com.darcy.lib_overlay.utils.OverlayCheckUtil
 import com.darcy.skipads.databinding.ActivityMainBinding
@@ -37,27 +36,12 @@ class MainActivity : AppCompatActivity() {
         NotificationPermissionUtil.NotificationPermissionRequester(
             this,
             binding.tvInfoNotification,
-            onGranted = {
-            },
-            onDenied = {
-                // 打开设置-通知页面
-                val intent = Intent().apply {
-                    // Android 8.0 跳转方式
-                    action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
-                    putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-
-                    // 兼容低版本
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                        data = Uri.fromParts("package", packageName, null)
-                    }
-                }
-                startActivity(intent)
-            }
+            onGranted = {},
+            onDenied = {}
         )
     }
     private var overlayService: OverlayService? = null
+    private var connection: ServiceConnection? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
         // darcyRefactor: ActivityResultLauncher请求通知权限 必须在onCreate中初始化
         notificationPermissionRequester.init()
+        OverlayNotificationUtil.init(this.javaClass)
         initView()
     }
 
@@ -82,28 +67,60 @@ class MainActivity : AppCompatActivity() {
             // darcyRefactor: 检查无障碍权限 跳转设置页面
             AccessCheckUtil.checkAccessibilityWithTextView(
                 binding.tvInfoAccessibility,
-                needDialog = true
+                needRequestPermission = true
             )
         }
         binding.btnNotification.setOnClickListener {
-            notificationPermissionRequester.requestNotificationPermissionWithTextView()
+            notificationPermissionRequester.requestNotificationPermissionWithTextView(
+                needRequestPermission = true
+            )
         }
         binding.btnBattery.setOnClickListener {
-            BatteryCheckUtil.checkBatteryOptimizationWithTextView(binding.tvInfoBattery)
+            BatteryCheckUtil.checkBatteryOptimizationWithTextView(
+                binding.tvInfoBattery,
+                needRequestPermission = true
+            )
+        }
+        binding.btnOverlay.setOnClickListener {
+            OverlayCheckUtil.checkOverlayPermissionWithTextView(
+                binding.tvInfoOverlay,
+                needRequestPermission = true
+            )
         }
 
         binding.tvSwitcher.setOnClickListener {
-            overlayService?.let {
-                if (it.isShowingOverlay()) {
-                    it.hideOverlayView()
-                    toasts("已关闭护眼")
-                } else {
-                    it.showOverlayView()
-                    it.setBackground(binding.seekbar.progress)
-                    toasts("已开启护眼")
+            if (overlayService == null) {
+                connectOverlayService { service ->
+                    service?.let {
+                        if (it.isShowingOverlay()) {
+                            it.hideOverlayView()
+                            toasts("已关闭护眼")
+                        } else {
+                            it.showOverlayView()
+                            it.setBackground(binding.seekbar.progress)
+                            toasts("已开启护眼")
+                        }
+                        setupOverlayStatus()
+                    }
                 }
+            } else {
+                overlayService?.let {
+                    if (it.isShowingOverlay()) {
+                        it.hideOverlayView()
+                        toasts("已关闭护眼")
+                        connection?.let {
+                            unbindService(it)
+                            connection = null
+                            overlayService = null
+                        }
+                    } else {
+                        it.showOverlayView()
+                        it.setBackground(binding.seekbar.progress)
+                        toasts("已开启护眼")
+                    }
+                }
+                setupOverlayStatus()
             }
-            checkOverlayStatus()
         }
         binding.seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(
@@ -129,18 +146,24 @@ class MainActivity : AppCompatActivity() {
         // 检查无障碍权限
         AccessCheckUtil.checkAccessibilityWithTextView(
             binding.tvInfoAccessibility,
-            needDialog = false
+            needRequestPermission = false
         )
         // 检查通知权限
-        notificationPermissionRequester.requestNotificationPermissionWithTextView()
+        notificationPermissionRequester.requestNotificationPermissionWithTextView(
+            needRequestPermission = false
+        )
         // 检查电池优化
-        BatteryCheckUtil.checkBatteryOptimizationWithTextView(binding.tvInfoBattery)
+        BatteryCheckUtil.checkBatteryOptimizationWithTextView(
+            binding.tvInfoBattery, needRequestPermission = false
+        )
         // 检查悬浮窗权限
-        checkOverlayPermission(needRequestPermission = true)
-        checkOverlayStatus()
+        OverlayCheckUtil.checkOverlayPermissionWithTextView(
+            binding.tvInfoOverlay, needRequestPermission = false
+        )
+        setupOverlayStatus()
     }
 
-    private fun checkOverlayStatus() {
+    private fun setupOverlayStatus() {
         overlayService?.let {
             if (it.isShowingOverlay()) {
                 binding.tvSwitcher.text = "已开启"
@@ -149,51 +172,36 @@ class MainActivity : AppCompatActivity() {
                 binding.tvSwitcher.text = "已关闭"
                 binding.tvSwitcher.setTextColor(Color.BLACK)
             }
+        } ?: run {
+            binding.tvSwitcher.text = "已关闭"
+            binding.tvSwitcher.setTextColor(Color.BLACK)
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == OverlayViewManager.OVERLAY_PERMISSION_REQUEST_CODE) {
-            checkOverlayPermission(needRequestPermission = false)
-        }
     }
 
-    private fun checkOverlayPermission(needRequestPermission: Boolean = false) {
-        if (canDrawOverlays(this)) {
-            // 权限已授予 显示悬浮窗
-            binding.tvInfoOverlay.text = "悬浮窗权限已授予"
-            binding.tvInfoOverlay.setTextColor(Color.GREEN)
-            connectOverlayService()
-        } else {
-            // 用户拒绝 提示引导
-            binding.tvInfoOverlay.text = "悬浮窗权限未授予"
-            binding.tvInfoOverlay.setTextColor(Color.RED)
-            if (needRequestPermission) {
-                OverlayCheckUtil.checkOverlayPermissionWithTextView(
-                    binding.tvInfoOverlay,
-                    OverlayViewManager.OVERLAY_PERMISSION_REQUEST_CODE
-                )
-            }
+    private fun connectOverlayService(callback: (service: OverlayService?) -> Unit) {
+        if (overlayService != null && connection != null) {
+            return
         }
-    }
-
-    private fun connectOverlayService() {
-//        OverlayService.startService(this)
-        bindService(Intent(this, OverlayService::class.java), object : ServiceConnection {
+        connection = object : ServiceConnection {
             override fun onServiceConnected(
                 name: ComponentName?,
                 service: IBinder?
             ) {
                 val binder = service as? OverlayService.OverlayBinder
                 overlayService = binder?.getService()
+                callback.invoke(binder?.getService())
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
                 overlayService = null
             }
 
-        }, BIND_AUTO_CREATE)
+        }
+        bindService(Intent(this, OverlayService::class.java), connection!!, BIND_AUTO_CREATE)
     }
 }
 

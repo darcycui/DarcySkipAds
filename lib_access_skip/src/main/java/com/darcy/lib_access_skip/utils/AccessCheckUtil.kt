@@ -12,7 +12,7 @@ import com.darcy.lib_access_skip.service.accessibility.dialog.AccessDialogs
 
 object AccessCheckUtil {
 
-    fun checkAccessibilityWithTextView(textView: TextView?, needDialog: Boolean) {
+    fun checkAccessibilityWithTextView(textView: TextView?, needRequestPermission: Boolean) {
         if (textView == null) return
         // 检查无障碍权限
         if (!isAccessibilityServiceEnabled(
@@ -23,7 +23,7 @@ object AccessCheckUtil {
             // 跳转到无障碍设置页面
             textView.text = "无障碍权限未启用"
             textView.setTextViewColorRed()
-            if (needDialog && textView.context is Activity) {
+            if (needRequestPermission && textView.context is Activity) {
                 AccessDialogs.showPermissionDialog(textView.context as Activity)
             }
         } else {

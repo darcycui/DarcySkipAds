@@ -43,39 +43,39 @@ object NotificationPermissionUtil {
             if (isGranted) {
                 // 权限已授予，执行后续操作
                 logD("通知权限已授予", TAG)
-                doGranted()
+                setGrantedUI()
             } else {
                 // 引导用户手动开启
                 logW("通知权限未授予", TAG)
-                doDenied()
+                setDeniedUI()
+                onDenied()
             }
         }
 
         fun init() {
-            logD("初始化权限请求", TAG)
+            logD("初始化权限请求,必须在onResume前调用", TAG)
         }
 
-        fun requestNotificationPermissionWithTextView() {
+        fun requestNotificationPermissionWithTextView(needRequestPermission: Boolean) {
             if (isNotificationPermissionGranted(activity)) {
-                doGranted()
+                setGrantedUI()
+                onGranted()
                 return
             }
-            doDenied()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setDeniedUI()
+            if (needRequestPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
         }
 
-        private fun doGranted() {
+        private fun setGrantedUI() {
             textView.text = "通知权限已授予"
             textView.setTextViewColorGreen()
-            onGranted()
         }
 
-        private fun doDenied() {
+        private fun setDeniedUI() {
             textView.text = "通知权限未授予"
             textView.setTextViewColorRed()
-            onDenied()
         }
     }
 }

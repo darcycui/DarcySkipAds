@@ -2,11 +2,15 @@ package com.darcy.lib_overlay
 
 import android.content.Context
 import android.content.Context.WINDOW_SERVICE
+import android.graphics.Color
 import android.graphics.PixelFormat
 import android.os.Build
+import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import android.widget.TextView
+import com.darcy.lib_overlay.utils.OverlayCheckUtil
 
 object OverlayViewManager {
     const val OVERLAY_PERMISSION_REQUEST_CODE = 101
@@ -39,33 +43,47 @@ object OverlayViewManager {
             in 0..10 -> {
                 return R.color.lib_overlay_black_10
             }
+
             in 11..20 -> {
                 return R.color.lib_overlay_black_20
             }
+
             in 21..30 -> {
                 return R.color.lib_overlay_black_30
             }
+
             in 31..40 -> {
                 return R.color.lib_overlay_black_40
             }
+
             in 41..50 -> {
                 return R.color.lib_overlay_black_50
             }
+
             in 51..60 -> {
                 return R.color.lib_overlay_black_60
             }
+
             in 61..70 -> {
                 return R.color.lib_overlay_black_70
             }
+
             in 71..80 -> {
                 return R.color.lib_overlay_black_80
             }
+
             in 81..90 -> {
                 return R.color.lib_overlay_black_90
             }
-            in 91..100 -> {
+
+            in 91..95 -> {
                 return R.color.lib_overlay_black_95
             }
+
+            in 96..100 -> {
+                return R.color.lib_overlay_black_98
+            }
+
             else -> {
                 return R.color.lib_overlay_black_20
             }
