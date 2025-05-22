@@ -2,6 +2,8 @@ package com.darcy.lib_access_skip.task.consumer
 
 import com.darcy.lib_access_skip.exts.logV
 import com.darcy.lib_access_skip.task.bean.ITask
+import com.darcy.lib_access_skip.task.bean.SkipTask
+import com.darcy.lib_access_skip.task.cache.FIFOCache
 import com.darcy.lib_access_skip.utils.GestureUtil
 import com.darcy.lib_access_skip.utils.PerformActionUtil
 import kotlinx.coroutines.CoroutineDispatcher
@@ -17,11 +19,12 @@ import kotlinx.coroutines.newSingleThreadContext
 
 class TaskConsumer(
     private val channel: Channel<ITask>,
+    private val taskCache: FIFOCache<SkipTask>,
     private val consumerDispatcher: CoroutineDispatcher = newSingleThreadContext("consumerDispatcher")
 ) {
     companion object {
         private val TAG = TaskConsumer::class.java.simpleName
-        private const val CONSUME_DELAY_MM = 1_00L
+        private const val CONSUME_DELAY_MM = 1_000L
     }
     private val exceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         logV("[消费者] 捕获到异常: ${throwable.message}")
@@ -46,6 +49,8 @@ class TaskConsumer(
                             // 执行手势点击
                             GestureUtil.clickByCoordinates(item.getNode(), item.getService())
                         }
+                        // 移除缓存
+                        taskCache.remove()
                     }
                 }
             }

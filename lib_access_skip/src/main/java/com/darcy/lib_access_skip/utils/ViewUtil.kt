@@ -3,8 +3,6 @@ package com.darcy.lib_access_skip.utils
 import android.accessibilityservice.AccessibilityService
 import android.view.accessibility.AccessibilityNodeInfo
 import com.darcy.lib_access_skip.exts.logV
-import com.darcy.lib_access_skip.task.TaskManager
-import com.darcy.lib_access_skip.task.bean.SkipTask
 import com.darcy.lib_access_skip.task.cache.FIFOCache
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
