@@ -16,7 +16,8 @@
             android:name=".service.OverlayService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="health" />
+            android:foregroundServiceType="health"
+            android:stopWithTask="false" />
     </application>
 
 </manifest>

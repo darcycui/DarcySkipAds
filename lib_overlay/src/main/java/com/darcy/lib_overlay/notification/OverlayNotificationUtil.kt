@@ -62,25 +62,36 @@ object OverlayNotificationUtil {
         NotificationManagerCompat.from(context).notify(notificationID, notification)
     }
 
+    /**
+     * 撤销护眼前台服务通知
+     * 用于 stopForeground 的兜底，避免服务停止/销毁后通知栏仍残留 FGS 通知
+     */
+    fun cancelNotification(context: Context) {
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
+    }
+
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     fun createNotification(context: Context): Notification {
         initNotificationChannel(context)
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            Intent(context, targetPendingIntentClazz),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-        val notification =
+        // targetPendingIntentClazz 由 App 在 MainActivity.onCreate 中 init。
+        // 进程被系统以 START_STICKY 重启时可能尚未 init，此时不设置点击跳转，避免 null class 崩溃
+        val builder =
             NotificationCompat.Builder(context, "${context.packageName}:$CHANNEL_ID_SUFFIX")
                 .setContentTitle("护眼服务")
                 .setContentText("护眼服务正在运行")
                 .setSmallIcon(R.drawable.lib_overlay_dog)
                 .setOngoing(true) // 不可滑动删除
                 .setAutoCancel(false) // 禁止自动取消
-                .setContentIntent(pendingIntent)
-                .build()
-        return notification
+        targetPendingIntentClazz?.let {
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                0,
+                Intent(context, it),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            builder.setContentIntent(pendingIntent)
+        }
+        return builder.build()
     }
 
     /**

@@ -4,11 +4,8 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.graphics.Color
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.provider.Settings
 import android.widget.SeekBar
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -89,37 +86,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.tvSwitcher.setOnClickListener {
-            if (overlayService == null) {
-                connectOverlayService { service ->
-                    service?.let {
-                        if (it.isShowingOverlay()) {
-                            it.hideOverlayView()
-                            toasts("已关闭护眼")
-                        } else {
-                            it.showOverlayView()
-                            it.setBackground(binding.seekbar.progress)
-                            toasts("已开启护眼")
-                        }
-                        setupOverlayStatus()
-                    }
-                }
+            // 以服务进程级状态为准：后台前台服务仍在运行时，重进 App 开关也应显示"已开启"
+            if (OverlayService.isActive) {
+                turnOffOverlay()
             } else {
-                overlayService?.let {
-                    if (it.isShowingOverlay()) {
-                        it.hideOverlayView()
-                        toasts("已关闭护眼")
-                        connection?.let {
-                            unbindService(it)
-                            connection = null
-                            overlayService = null
-                        }
-                    } else {
-                        it.showOverlayView()
-                        it.setBackground(binding.seekbar.progress)
-                        toasts("已开启护眼")
-                    }
-                }
-                setupOverlayStatus()
+                turnOnOverlay()
             }
         }
         binding.seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -141,6 +112,45 @@ class MainActivity : AppCompatActivity() {
         binding.seekbarProgress.text = binding.seekbar.progress.toString() + "%"
     }
 
+    /**
+     * 开启护眼：以前台服务方式启动，退出 App 后仍持续运行；绑定服务以便实时调节亮度。
+     */
+    private fun turnOnOverlay() {
+        val started = OverlayService.start(this)
+        if (!started) {
+            // 通知权限未开启，start() 已引导去设置
+            toasts("护眼服务需要通知权限，请先开启")
+            return
+        }
+        connectOverlayService { service ->
+            service?.let {
+                // onStartCommand 已负责展示遮罩；此处兜底确保显示并同步当前亮度
+                if (!it.isShowingOverlay()) {
+                    it.startOverlay()
+                }
+                it.setBackground(binding.seekbar.progress)
+            }
+            setupOverlayStatus()
+        }
+        toasts("已开启护眼")
+    }
+
+    /**
+     * 关闭护眼：彻底停止服务并撤销前台通知。
+     */
+    private fun turnOffOverlay() {
+        if (overlayService != null) {
+            // 已绑定：直接命令服务停止（内部 stopForeground + 撤通知 + stopSelf）
+            overlayService?.stopOverlay()
+        } else {
+            // 服务在后台运行但页面未绑定：用 stopService 停止
+            OverlayService.stop(this)
+        }
+        unbindOverlayService()
+        toasts("已关闭护眼")
+        setupOverlayStatus()
+    }
+
     override fun onResume() {
         super.onResume()
         // 检查无障碍权限
@@ -160,30 +170,54 @@ class MainActivity : AppCompatActivity() {
         OverlayCheckUtil.checkOverlayPermissionWithTextView(
             binding.tvInfoOverlay, needRequestPermission = false
         )
-        setupOverlayStatus()
+        refreshOverlayControl()
+    }
+
+    /**
+     * 护眼服务可能在后台持续运行：回到页面时若已运行但未绑定，补一个绑定，
+     * 使开关状态与亮度调节可用（此解绑不会停止服务）。
+     */
+    private fun refreshOverlayControl() {
+        if (!OverlayService.isActive) {
+            setupOverlayStatus()
+            return
+        }
+        if (overlayService == null || connection == null) {
+            connectOverlayService { service ->
+                service?.let { it.setBackground(binding.seekbar.progress) }
+                setupOverlayStatus()
+            }
+        } else {
+            setupOverlayStatus()
+        }
     }
 
     private fun setupOverlayStatus() {
-        overlayService?.let {
-            if (it.isShowingOverlay()) {
-                binding.tvSwitcher.text = "已开启"
-                binding.tvSwitcher.setTextColor(Color.GREEN)
-            } else {
-                binding.tvSwitcher.text = "已关闭"
-                binding.tvSwitcher.setTextColor(Color.BLACK)
-            }
-        } ?: run {
-            binding.tvSwitcher.text = "已关闭"
-            binding.tvSwitcher.setTextColor(Color.BLACK)
-        }
+        // 以前台服务的进程级运行状态为准
+        val active = OverlayService.isActive
+        binding.tvSwitcher.text = if (active) "已开启" else "已关闭"
+        binding.tvSwitcher.setTextColor(if (active) Color.GREEN else Color.BLACK)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
+    /**
+     * 解绑并清空服务引用
+     */
+    private fun unbindOverlayService() {
+        connection?.let {
+            runCatching { unbindService(it) }
+            connection = null
+        }
+        overlayService = null
+    }
+
     private fun connectOverlayService(callback: (service: OverlayService?) -> Unit) {
         if (overlayService != null && connection != null) {
+            // 已连接：直接回调当前服务，避免调用方因守卫静默返回而漏刷新 UI
+            callback.invoke(overlayService)
             return
         }
         connection = object : ServiceConnection {
