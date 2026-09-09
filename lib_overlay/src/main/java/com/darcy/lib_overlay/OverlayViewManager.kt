@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.PixelFormat
 import android.os.Build
 import android.provider.Settings
+import android.util.DisplayMetrics
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -92,34 +93,46 @@ object OverlayViewManager {
 
     fun getWindowLayoutParams(): WindowManager.LayoutParams {
         val layoutParams = WindowManager.LayoutParams()
-        //设置宽高
-        layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
-        layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT
-        //设置显示位置
-        layoutParams.gravity = Gravity.FILL
+        // 尺寸用真实屏幕像素铺满（含状态栏/导航栏区域）。
+        // 对 TYPE_APPLICATION_OVERLAY 用 MATCH_PARENT 时，部分设备/ROM 会按“去掉系统栏后的可用区”计算，
+        // 导致顶部状态栏无法被遮罩覆盖。
+        @Suppress("DEPRECATION")
+        val metrics = DisplayMetrics()
+        windowManager.defaultDisplay.getRealMetrics(metrics)
+        layoutParams.width = metrics.widthPixels
+        layoutParams.height = metrics.heightPixels
+        // 以屏幕左上角为原点铺开
+        layoutParams.gravity = Gravity.TOP or Gravity.START
+        layoutParams.x = 0
+        layoutParams.y = 0
         layoutParams.format = PixelFormat.RGBA_8888
-        //设置状态栏与导航栏效果
-        layoutParams.systemUiVisibility =
-            View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-        //设置悬浮窗效果
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                layoutParams.layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-            }
-            layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or // 禁止触摸事件
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or  // 禁止获取焦点
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or // 允许内容延伸至系统栏
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-            layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        // 悬浮窗类型
+        layoutParams.type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
-            layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
-            layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN
+            WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
+        }
+        // 允许内容延伸进系统栏区域并铺满全屏
+        layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or // 禁止触摸事件
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or // 禁止获取焦点
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or // 内容可延伸至系统栏
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        // 全屏效果：尽力隐藏状态栏与导航栏（对非聚焦悬浮窗，部分系统会忽略）
+        layoutParams.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                    View.SYSTEM_UI_FLAG_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        // 刘海屏/挖孔屏区域也允许绘制
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            layoutParams.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            layoutParams.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
         return layoutParams
     }
