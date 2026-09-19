@@ -13,53 +13,58 @@
         android:layout_height="match_parent"
         tools:context=".MainActivity">
 
-        <LinearLayout
-            android:id="@+id/settingInfo"
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/tvInfoAccessibility"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintTop_toTopOf="parent">
+            android:gravity="center"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:text="Hello World!"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toStartOf="@+id/tvInfoNotification"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:id="@+id/tvInfoAccessibility"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:text="Hello World!"
-                android:textSize="20sp" />
+        <TextView
+            android:id="@+id/tvInfoNotification"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:text="Hello World!"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/tvInfoAccessibility"
+            app:layout_constraintTop_toTopOf="@id/tvInfoAccessibility" />
 
-            <TextView
-                android:id="@+id/tvInfoNotification"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:text="Hello World!"
-                android:textSize="20sp" />
+        <TextView
+            android:id="@+id/tvInfoBattery"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:text="Hello World!"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toStartOf="@+id/tvInfoOverlay"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvInfoAccessibility" />
 
-            <TextView
-                android:id="@+id/tvInfoBattery"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:text="Hello World!"
-                android:textSize="20sp" />
-
-            <TextView
-                android:id="@+id/tvInfoOverlay"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:text="Hello World!"
-                android:textSize="20sp" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tvInfoOverlay"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:text="Hello World!"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/tvInfoBattery"
+            app:layout_constraintTop_toTopOf="@id/tvInfoBattery" />
 
 
         <Button
@@ -70,7 +75,7 @@
             android:text="开启服务"
             app:layout_constraintEnd_toStartOf="@+id/testAccessibility"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/settingInfo" />
+            app:layout_constraintTop_toBottomOf="@+id/tvInfoOverlay" />
 
         <Button
             android:id="@+id/testAccessibility"
@@ -118,7 +123,7 @@
             android:id="@+id/tvSwitcher"
             android:layout_width="200dp"
             android:layout_height="200dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="8dp"
             android:background="@drawable/lib_overlay_circle_gray"
             android:gravity="center"
             android:text="已关闭"

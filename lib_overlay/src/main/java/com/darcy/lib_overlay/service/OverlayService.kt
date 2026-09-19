@@ -45,11 +45,7 @@ class OverlayService : Service() {
          *
          * @return true 表示已发起启动；false 表示缺少通知权限，已引导去设置，未启动
          */
-        fun start(context: Context): Boolean {
-            if (!OverlayNotificationUtil.areNotificationsEnabled(context)) {
-                OverlayNotificationUtil.goNotificationSettings(context)
-                return false
-            }
+        fun startOverLayForegroundService(context: Context): Boolean {
             ContextCompat.startForegroundService(
                 context,
                 Intent(context, OverlayService::class.java)

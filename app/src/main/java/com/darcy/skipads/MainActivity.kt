@@ -3,6 +3,7 @@ package com.darcy.skipads
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.os.IBinder
@@ -11,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.darcy.lib_access_skip.exts.logW
 import com.darcy.lib_access_skip.exts.toasts
 import com.darcy.lib_access_skip.permission.NotificationPermissionUtil
 import com.darcy.lib_access_skip.ui.TestSkipActivity
@@ -116,9 +118,9 @@ class MainActivity : AppCompatActivity() {
      * 开启护眼：以前台服务方式启动，退出 App 后仍持续运行；绑定服务以便实时调节亮度。
      */
     private fun turnOnOverlay() {
-        val started = OverlayService.start(this)
-        if (!started) {
-            // 通知权限未开启，start() 已引导去设置
+        // 通知权限未开启，start() 已引导去设置
+        if (!OverlayNotificationUtil.areNotificationsEnabled(this)) {
+            OverlayNotificationUtil.goNotificationSettings(this)
             toasts("护眼服务需要通知权限，请先开启")
             return
         }
@@ -128,11 +130,13 @@ class MainActivity : AppCompatActivity() {
                 if (!it.isShowingOverlay()) {
                     it.startOverlay()
                 }
+                // todo 先显示 Overlay 再启动前台服务
+                OverlayService.startOverLayForegroundService(this)
                 it.setBackground(binding.seekbar.progress)
             }
             setupOverlayStatus()
         }
-        toasts("已开启护眼")
+//        toasts("已开启护眼")
     }
 
     /**
@@ -147,7 +151,7 @@ class MainActivity : AppCompatActivity() {
             OverlayService.stop(this)
         }
         unbindOverlayService()
-        toasts("已关闭护眼")
+//        toasts("已关闭护眼")
         setupOverlayStatus()
     }
 
@@ -201,6 +205,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        logW("触发 onConfigurationChanged")
+        if (OverlayService.isActive) {
+            turnOffOverlay()
+            turnOnOverlay()
+        } else {
+            turnOffOverlay()
+        }
     }
 
     /**
