@@ -2,16 +2,14 @@ package com.darcy.lib_overlay
 
 import android.content.Context
 import android.content.Context.WINDOW_SERVICE
-import android.graphics.Color
 import android.graphics.PixelFormat
 import android.os.Build
-import android.provider.Settings
 import android.util.DisplayMetrics
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import android.widget.TextView
-import com.darcy.lib_overlay.utils.OverlayCheckUtil
+import kotlin.math.max
+import kotlin.math.min
 
 object OverlayViewManager {
     const val OVERLAY_PERMISSION_REQUEST_CODE = 101
@@ -99,8 +97,15 @@ object OverlayViewManager {
         @Suppress("DEPRECATION")
         val metrics = DisplayMetrics()
         windowManager.defaultDisplay.getRealMetrics(metrics)
-        layoutParams.width = metrics.widthPixels
-        layoutParams.height = metrics.heightPixels
+        val baseMin = min(metrics.widthPixels, metrics.heightPixels)
+        val baseMax = max(metrics.widthPixels, metrics.heightPixels)
+        // 这里把宽和高都设置为比较大的值 这样不管横屏还是竖屏都能全覆盖
+        layoutParams.width = baseMax
+        layoutParams.height = baseMax
+//        layoutParams.width = metrics.widthPixels
+//        layoutParams.height = metrics.heightPixels
+        // 固定悬浮窗方向 竖屏
+//        layoutParams.screenOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         // 以屏幕左上角为原点铺开
         layoutParams.gravity = Gravity.TOP or Gravity.START
         layoutParams.x = 0
