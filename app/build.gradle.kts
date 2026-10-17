@@ -21,35 +21,35 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 4
-        versionName = "1.0.5"
+        versionName = "1.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     // load key store from local.properties
     val localProperties = gradleLocalProperties(File(project.rootDir.absolutePath))
-//    signingConfigs {
-//        create("debugSign") {
-//            storeFile = file(localProperties.getProperty("keystore_path"))
-//            keyAlias = localProperties.getProperty("key_alias")
-//            storePassword = localProperties.getProperty("store_password")
-//            keyPassword = localProperties.getProperty("key_password")
-//        }
-//
-//        create("releaseSign") {
-//            storeFile = file(localProperties.getProperty("keystore_path"))
-//            keyAlias = localProperties.getProperty("key_alias")
-//            storePassword = localProperties.getProperty("store_password")
-//            keyPassword = localProperties.getProperty("key_password")
-//        }
-//    }
+    signingConfigs {
+        create("debugSign") {
+            storeFile = file(localProperties.getProperty("keystore_path"))
+            keyAlias = localProperties.getProperty("key_alias")
+            storePassword = localProperties.getProperty("store_password")
+            keyPassword = localProperties.getProperty("key_password")
+        }
+
+        create("releaseSign") {
+            storeFile = file(localProperties.getProperty("keystore_path"))
+            keyAlias = localProperties.getProperty("key_alias")
+            storePassword = localProperties.getProperty("store_password")
+            keyPassword = localProperties.getProperty("key_password")
+        }
+    }
 
     buildTypes {
         debug {
             isDebuggable = true
             isMinifyEnabled = false
             isShrinkResources = false
-//            signingConfig = signingConfigs.getByName("debugSign")
+            signingConfig = signingConfigs.getByName("debugSign")
         }
         release {
             isMinifyEnabled = true
@@ -59,7 +59,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-//            signingConfig = signingConfigs.getByName("releaseSign")
+            signingConfig = signingConfigs.getByName("releaseSign")
         }
     }
 
