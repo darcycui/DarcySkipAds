@@ -9,6 +9,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.baselineprofile)
 }
 
 android {
@@ -126,6 +127,7 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.profileinstaller)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
@@ -138,4 +140,5 @@ dependencies {
 //    implementation(files("libs/lib_access_skip-release.aar"))
     implementation(project(":lib_access_skip"))
     implementation(project(":lib_overlay"))
+    "baselineProfile"(project(":baselineprofile"))
 }
